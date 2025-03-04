@@ -1,0 +1,317 @@
+Federated Learning Training Results
+==================================
+
+Number of clients: 36
+Number of rounds: 50
+Local epochs per round: 10
+Learning rate: 0.0005
+
+
+Round 1:
+Test Accuracy: 0.4259
+Time taken: 15.52 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 2:
+Test Accuracy: 0.5082
+Time taken: 16.05 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 3:
+Test Accuracy: 0.5182
+Time taken: 17.17 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 4:
+Test Accuracy: 0.5205
+Time taken: 17.03 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 5:
+Test Accuracy: 0.5212
+Time taken: 17.04 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 6:
+Test Accuracy: 0.5209
+Time taken: 15.64 seconds
+------------------------------
+
+Round 7:
+Test Accuracy: 0.5207
+Time taken: 15.44 seconds
+------------------------------
+
+Round 8:
+Test Accuracy: 0.5208
+Time taken: 15.74 seconds
+------------------------------
+
+Round 9:
+Test Accuracy: 0.5211
+Time taken: 15.55 seconds
+------------------------------
+
+Round 10:
+Test Accuracy: 0.5213
+Time taken: 15.99 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 11:
+Test Accuracy: 0.5275
+Time taken: 15.58 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 12:
+Test Accuracy: 0.5311
+Time taken: 15.52 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 13:
+Test Accuracy: 0.5329
+Time taken: 15.46 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 14:
+Test Accuracy: 0.5336
+Time taken: 15.65 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 15:
+Test Accuracy: 0.5339
+Time taken: 15.48 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 16:
+Test Accuracy: 0.5341
+Time taken: 15.98 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 17:
+Test Accuracy: 0.5350
+Time taken: 16.91 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 18:
+Test Accuracy: 0.5409
+Time taken: 15.77 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 19:
+Test Accuracy: 0.5442
+Time taken: 15.67 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 20:
+Test Accuracy: 0.5462
+Time taken: 15.71 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 21:
+Test Accuracy: 0.5470
+Time taken: 15.71 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 22:
+Test Accuracy: 0.5470
+Time taken: 15.53 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 23:
+Test Accuracy: 0.5473
+Time taken: 15.55 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 24:
+Test Accuracy: 0.5476
+Time taken: 15.52 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 25:
+Test Accuracy: 0.5481
+Time taken: 15.50 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 26:
+Test Accuracy: 0.5485
+Time taken: 15.51 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 27:
+Test Accuracy: 0.5492
+Time taken: 15.50 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 28:
+Test Accuracy: 0.5497
+Time taken: 15.61 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 29:
+Test Accuracy: 0.5505
+Time taken: 15.61 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 30:
+Test Accuracy: 0.5513
+Time taken: 15.55 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 31:
+Test Accuracy: 0.5524
+Time taken: 15.57 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 32:
+Test Accuracy: 0.5536
+Time taken: 15.55 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 33:
+Test Accuracy: 0.5547
+Time taken: 15.68 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 34:
+Test Accuracy: 0.5563
+Time taken: 15.62 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 35:
+Test Accuracy: 0.5577
+Time taken: 15.66 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 36:
+Test Accuracy: 0.5597
+Time taken: 15.64 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 37:
+Test Accuracy: 0.5611
+Time taken: 15.57 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 38:
+Test Accuracy: 0.5632
+Time taken: 15.72 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 39:
+Test Accuracy: 0.5648
+Time taken: 15.62 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 40:
+Test Accuracy: 0.5673
+Time taken: 15.59 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 41:
+Test Accuracy: 0.5683
+Time taken: 15.79 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 42:
+Test Accuracy: 0.5704
+Time taken: 17.28 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 43:
+Test Accuracy: 0.5722
+Time taken: 17.23 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 44:
+Test Accuracy: 0.5736
+Time taken: 16.71 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 45:
+Test Accuracy: 0.5759
+Time taken: 17.52 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 46:
+Test Accuracy: 0.5768
+Time taken: 16.81 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 47:
+Test Accuracy: 0.5788
+Time taken: 19.15 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 48:
+Test Accuracy: 0.5799
+Time taken: 18.06 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 49:
+Test Accuracy: 0.5817
+Time taken: 15.85 seconds
+New best accuracy achieved!
+------------------------------
+
+Round 50:
+Test Accuracy: 0.5829
+Time taken: 16.66 seconds
+New best accuracy achieved!
+------------------------------
+
+Training Summary:
+================
+Best accuracy achieved: 0.5829
+Average accuracy across all rounds: 0.5459
+Accuracy in final round: 0.5829
+Accuracy improvement from first to last round: 0.1570
+
+Time Statistics:
+Total training time: 801.82 seconds
+Average time per round: 16.04 seconds
+Fastest round: 15.44 seconds
+Slowest round: 19.15 seconds
