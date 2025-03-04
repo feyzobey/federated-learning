@@ -1,14 +1,15 @@
 # Federated Learning Implementation with FedAvg
 
-This is a simple implementation of Federated Learning using the Federated Averaging (FedAvg) algorithm. The implementation is inspired by the WISDM activity recognition dataset structure but uses dummy data for demonstration purposes.
+This is an implementation of Federated Learning using the Federated Averaging (FedAvg) algorithm. The implementation is inspired by the WISDM activity recognition dataset structure but uses dummy data for demonstration purposes.
 
 ## Overview
 
 The implementation includes:
 - A simple neural network model for activity recognition
 - Simulated client data distribution
-- FedAvg implementation
+- Federated Averaging (FedAvg) implementation
 - Training loop with multiple clients
+- Performance monitoring and logging
 
 ## Requirements
 
@@ -23,7 +24,7 @@ pandas==2.0.3
 
 1. **Model Architecture**: A simple feed-forward neural network with 3 layers
    - Input: 3 features (x, y, z accelerometer data)
-   - Hidden layer: 64 units with ReLU activation
+   - Hidden layer: 128 units with ReLU activation and dropout
    - Output: 6 classes (Walking, Jogging, Sitting, Standing, Upstairs, Downstairs)
 
 2. **Federated Learning Process**:
@@ -54,4 +55,12 @@ You can modify these parameters in the `main()` function:
 - `num_rounds`: Number of federated learning rounds
 - `local_epochs`: Number of training epochs for each client
 - `learning_rate`: Learning rate for local training
-- `samples_per_client`: Number of samples per client 
+
+## Results
+
+The training results are saved in the `results/result.txt` file, including:
+- Training configuration
+- Per-round accuracy and time
+- Best accuracy achieved
+- Average accuracy across rounds
+- Time statistics (total, per round, fastest, slowest) 

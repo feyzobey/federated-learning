@@ -84,7 +84,7 @@ def load_data_from_csv(input_dir: str = "input_datas") -> Dict[int, Dict[str, to
     return client_data
 
 
-def client_update(model: nn.Module, data: Dict[str, torch.Tensor], epochs: int, lr: float):
+def client_update(model: nn.Module, data: Dict[str, torch.Tensor], epochs: int, lr: float) -> Dict[str, torch.Tensor]:
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
@@ -100,14 +100,13 @@ def client_update(model: nn.Module, data: Dict[str, torch.Tensor], epochs: int, 
 
 
 def federated_averaging(client_states: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+    """Standard Federated Averaging (FedAvg)"""
     averaged_state = {}
 
     for key in client_states[0].keys():
         averaged_state[key] = torch.zeros_like(client_states[0][key])
-
         for client_state in client_states:
             averaged_state[key] += client_state[key]
-
         averaged_state[key] = torch.div(averaged_state[key], len(client_states))
 
     return averaged_state
@@ -130,7 +129,8 @@ def main():
         f.write(f"Number of clients: {num_clients}\n")
         f.write(f"Number of rounds: {num_rounds}\n")
         f.write(f"Local epochs per round: {local_epochs}\n")
-        f.write(f"Learning rate: {learning_rate}\n\n")
+        f.write(f"Learning rate: {learning_rate}\n")
+        f.write("Aggregation method: FedAvg\n\n")
 
     print("Initializing Federated Learning with WISDM dataset characteristics...")
     print(f"Number of clients: {num_clients}")
