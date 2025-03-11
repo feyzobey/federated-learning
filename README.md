@@ -1,66 +1,124 @@
-# Federated Learning Implementation with FedAvg
+# Federated Learning Implementation with 7-Layer CNN
 
-This is an implementation of Federated Learning using the Federated Averaging (FedAvg) algorithm. The implementation is inspired by the WISDM activity recognition dataset structure but uses dummy data for demonstration purposes.
+This is an implementation of Federated Learning using the Federated Averaging (FedAvg) algorithm with a 7-layer CNN model. The implementation is designed for activity recognition tasks and includes comprehensive logging and model tracking.
 
 ## Overview
 
 The implementation includes:
-- A simple neural network model for activity recognition
-- Simulated client data distribution
-- Federated Averaging (FedAvg) implementation
-- Training loop with multiple clients
-- Performance monitoring and logging
+- A 7-layer CNN model for activity recognition
+- Federated learning with multiple clients
+- Weighted federated averaging (FedAvg)
+- Comprehensive logging and metrics tracking
+- Model checkpointing and experiment tracking
+- Synthetic data generation with realistic patterns
 
 ## Requirements
 
 ```bash
-numpy==1.24.3
-torch==2.1.0
-scikit-learn==1.3.0
-pandas==2.0.3
+torch>=2.1.0
+numpy>=1.24.3
 ```
+
+## Model Architecture
+
+The CNN model consists of 7 layers:
+1. Conv1d layer (3 input channels, 32 output channels, kernel size 3)
+2. ReLU activation
+3. MaxPool1d layer (kernel size 2, stride 2)
+4. Conv1d layer (32 input channels, 64 output channels, kernel size 3)
+5. ReLU activation
+6. MaxPool1d layer (kernel size 2, stride 2)
+7. Linear layer (flattened input → 6 classes)
 
 ## Implementation Details
 
-1. **Model Architecture**: A simple feed-forward neural network with 3 layers
-   - Input: 3 features (x, y, z accelerometer data)
-   - Hidden layer: 128 units with ReLU activation and dropout
-   - Output: 6 classes (Walking, Jogging, Sitting, Standing, Upstairs, Downstairs)
+### Federated Learning Process
+- Global model initialization with Xavier weight initialization
+- For each round:
+  1. Global model distribution to clients
+  2. Local training on client data
+  3. Model aggregation using weighted FedAvg
+  4. Performance evaluation on all clients
 
-2. **Federated Learning Process**:
-   - The global model is initialized
-   - For each round:
-     - Each client receives a copy of the global model
-     - Clients train the model on their local data
-     - Client models are aggregated using FedAvg
-     - The global model is updated with the aggregated parameters
+### Features
+- Data validation and input checking
+- Comprehensive logging and metrics tracking
+- Model checkpointing and experiment organization
+- Synthetic data generation with realistic patterns
+- JSON export of metrics and configurations
+- GPU support
 
-3. **Data Simulation**:
-   - Generates dummy accelerometer data for each client
-   - Similar structure to WISDM dataset
-   - Random distribution of activities
+### Logging and Metrics
+- Detailed per-round metrics
+- Client-specific performance tracking
+- Training history and model checkpoints
+- Configuration tracking and experiment organization
+- JSON format metrics for easy analysis
+
+## Project Structure
+
+```
+.
+├── federated_learning_cnn.py  # Main implementation
+├── results/                   # Results directory
+│   └── run_TIMESTAMP/        # Individual run results
+│       ├── results_fl.txt    # Detailed training log
+│       ├── config.json       # Run configuration
+│       ├── final_metrics.json# Complete training metrics
+│       └── models/           # Model checkpoints
+└── inputs/                   # Input data
+    ├── inputs.txt           # Human-readable format
+    └── inputs.json          # Machine-readable format
+```
 
 ## Usage
 
 ```bash
-python federated_learning.py
+python federated_learning_cnn.py
 ```
 
-The script will run the federated learning process for the specified number of rounds and display the global model accuracy after each round.
+### Configuration Parameters
 
-## Parameters
+The following parameters can be modified in the configuration dictionary:
+- `num_clients`: Number of clients (default: 36)
+- `num_rounds`: Number of federated learning rounds (default: 10)
+- `local_epochs`: Number of local training epochs (default: 5)
+- `learning_rate`: Learning rate for local training (default: 0.001)
+- `batch_size`: Batch size for training (default: 64)
+- `window_size`: Input window size (default: 20)
+- `samples_per_client`: Number of samples per client (default: 100)
 
-You can modify these parameters in the `main()` function:
-- `num_clients`: Number of clients participating in federated learning
-- `num_rounds`: Number of federated learning rounds
-- `local_epochs`: Number of training epochs for each client
-- `learning_rate`: Learning rate for local training
+## Results and Logging
 
-## Results
+The implementation provides comprehensive logging and metrics tracking:
+- Training configuration and hyperparameters
+- Model architecture details
+- Per-round accuracy and loss metrics
+- Client-specific performance metrics
+- Training time statistics
+- Best model checkpoints
 
-The training results are saved in the `results/result.txt` file, including:
-- Training configuration
-- Per-round accuracy and time
-- Best accuracy achieved
-- Average accuracy across rounds
-- Time statistics (total, per round, fastest, slowest) 
+Results are organized by timestamp for easy tracking and comparison:
+- Human-readable logs in text format
+- Machine-readable metrics in JSON format
+- Model checkpoints for best performing models
+- Configuration files for reproducibility
+
+## Performance Metrics
+
+The implementation tracks various metrics:
+- Average accuracy across clients
+- Individual client accuracies
+- Training and evaluation loss
+- Time statistics (per round, total)
+- Best model performance
+
+## Future Improvements
+
+Potential areas for enhancement:
+- Client data heterogeneity simulation
+- Advanced client selection strategies
+- Privacy-preserving mechanisms
+- Adaptive learning rate scheduling
+- Cross-client validation
+- Distributed training support 
