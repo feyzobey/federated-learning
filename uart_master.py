@@ -1,23 +1,37 @@
 import serial
+import logging
 
-BAUD_RATE = 115200
+# Set up logging to text file
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(), logging.FileHandler("master_log.txt")])  # Log to a text file
 
 
-def request_model_update(uart_port):
-    """Request model updates from the STM32 Slave device."""
+def setup_uart():
+    uart_port = input("Enter UART port for master device (e.g., /dev/ttyUSB2 or COM5): ")
+    baud_rate = 115200
+
     try:
-        with serial.Serial(uart_port, BAUD_RATE, timeout=2) as uart:
-            uart.write(b"GET_MODEL_UPDATE\n")  # Send request
-            response = uart.readline().decode().strip()
-            print(f"Received from STM32: {response}")
-            return response  # Model parameters as a JSON string
+        ser = serial.Serial(uart_port, baud_rate, timeout=1)
+        logging.info(f"UART Master initialized on {uart_port} at {baud_rate} baud.")
+        return ser
     except Exception as e:
-        print(f"UART Error: {e}")
+        logging.error(f"Error initializing UART: {e}")
+        return None
+
+
+def main():
+    ser = setup_uart()
+    if not ser:
+        return
+
+    while True:
+        try:
+            data = ser.readline().decode().strip()
+            if data:
+                logging.info(f"Received: {data}")
+                ser.write(f"ACK: {data}\n".encode())  # Send acknowledgment
+        except Exception as e:
+            logging.error(f"UART Error: {e}")
 
 
 if __name__ == "__main__":
-    print("Requesting model update from STM32...")
-    uart_port = input("Enter UART port: ")
-    update = request_model_update(uart_port)
-    if update:
-        print("Model Update Received:", update)
+    main()

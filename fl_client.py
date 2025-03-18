@@ -1,3 +1,4 @@
+import logging
 import torch
 import torch.optim as optim
 import serial
@@ -6,12 +7,17 @@ import numpy as np
 from cnn_model import ActivityCNN
 
 
+# Set up logging to text file
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(), logging.FileHandler("client_log.txt")])  # Log to a text file
+
+
 class FederatedClient:
     def __init__(self, uart_port, baud_rate=115200):
         self.model = ActivityCNN()
         self.optimizer = optim.SGD(self.model.parameters(), lr=0.01)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.serial_conn = serial.Serial(uart_port, baud_rate, timeout=1)
+        logging.info(f"Federated Client initialized on {uart_port}.")
 
     def train_local_model(self, data, labels, epochs=1):
         """Simulates local training."""
@@ -27,7 +33,12 @@ class FederatedClient:
         """Sends trained model weights via UART."""
         update = {"weights": {k: v.tolist() for k, v in self.model.state_dict().items()}, "size": 100}
         self.serial_conn.write((json.dumps(update) + "\n").encode())
-        print("Sent model update to server.")
+        logging.info("Sent model update to server.")
+
+        # Write JSON data to .json file
+        with open("client_update.json", "a") as json_file:
+            json.dump(update, json_file)
+            json_file.write("\n")
 
     def run(self):
         """Runs training and sends updates."""
