@@ -27,14 +27,13 @@ def list_available_ports():
 
 
 class FederatedServer:
-    def __init__(self, uart_port, baud_rate=115200, num_clients=36):
+    def __init__(self, uart_port, baud_rate=115200, num_clients=1):
         self.model_updates = []
         self.num_clients = num_clients
         self.serial_conn = serial.Serial(uart_port, baud_rate, timeout=1)
         logging.info(f"Federated Server initialized on {uart_port}.")
 
     def federated_averaging(self):
-        """Performs federated averaging."""
         if len(self.model_updates) < self.num_clients:
             logging.info(f"Waiting for more clients... ({len(self.model_updates)}/{self.num_clients})")
             return
@@ -61,73 +60,130 @@ class FederatedServer:
         self.model_updates.clear()
 
     def receive_client_updates(self):
-        """Receives updates from UART."""
+        buffer = ""
+        current_layer = None
+        current_layer_data = ""
         try:
-            current_client = {}
-            # current_layer = None
-            values = []
+            current_client = {
+                "client_id": None,
+                "model_params": {"conv1.weight": [], "conv1.bias": [], "conv2.weight": [], "conv2.bias": [], "dense1.weight": [], "dense1.bias": [], "dense2.weight": [], "dense2.bias": []},
+            }
 
             while True:
-                data = self.serial_conn.readline().decode().strip()
-                if not data:
-                    continue
+                try:
+                    # Read raw bytes
+                    raw_data = self.serial_conn.readline()
 
-                # Log raw data for debugging
-                logging.debug(f"Raw data received: {data}")
-
-                if data.startswith("CLIENT:"):
-                    # Start of new client data
-                    if current_client:
-                        # Save previous client if exists
-                        self.model_updates.append(current_client)
-                        logging.info(f"Received update from client ({len(self.model_updates)}/{self.num_clients})")
-
-                        # Save to file
-                        os.makedirs("client_updates", exist_ok=True)
-                        client_file = f"client_updates/client_{len(self.model_updates)}.txt"
-                        with open(client_file, "w") as f:
-                            f.write(str(current_client))
-                        logging.info(f"Saved client update to {client_file}")
-
-                    current_client = {}
-                    client_id = int(data.split(":")[1])
-                    logging.info(f"Processing data for client {client_id}")
-
-                elif data.startswith("END"):
-                    # End of client data
-                    if current_client:
-                        self.model_updates.append(current_client)
-                        logging.info(f"Received update from client ({len(self.model_updates)}/{self.num_clients})")
-
-                        # Save to file
-                        os.makedirs("client_updates", exist_ok=True)
-                        client_file = f"client_updates/client_{len(self.model_updates)}.txt"
-                        with open(client_file, "w") as f:
-                            f.write(str(current_client))
-                        logging.info(f"Saved client update to {client_file}")
-
-                        # Reset for next client
-                        current_client = {}
-
-                elif ":" in data:
-                    # Layer data with values
-                    layer_name, values_str = data.split(":", 1)
+                    # Decode the data
                     try:
-                        # Split the values string by comma and convert to floats
-                        values = [float(x) for x in values_str.split(",")]
-                        current_client[layer_name] = values
-                        logging.debug(f"Received {len(values)} values for layer {layer_name}")
-                    except ValueError as e:
-                        logging.error(f"Error parsing values for layer {layer_name}: {e}")
-                        logging.error(f"Invalid values string: {values_str}")
+                        data = raw_data.decode("latin-1").strip()
+                    except UnicodeDecodeError:
+                        data = raw_data.decode("utf-8", errors="replace").strip()
 
-                # Check if we have all clients
-                if len(self.model_updates) >= self.num_clients:
-                    break
+                    if not data:
+                        continue
+
+                    # Handle new layer data or continuation of existing layer
+                    if ":" in data and not current_layer:
+                        # This is potentially the start of layer data
+                        parts = data.split(":", 1)
+                        layer_name = parts[0]
+
+                        if layer_name in current_client["model_params"]:
+                            current_layer = layer_name
+                            current_layer_data = parts[1]
+                        else:
+                            # Could be client info or other metadata
+                            if data.startswith("CLIENT:"):
+                                current_client["client_id"] = int(data.split(":")[1])
+                            buffer += data + "\n"
+                    elif current_layer:
+                        # Continuation of layer data
+                        current_layer_data += data
+
+                        # Check if we've reached the end of this layer's data
+                        if data.endswith(",END") or data == "END" or "END" in data:
+                            # Clean up and process the layer data
+                            if "END" in current_layer_data:
+                                current_layer_data = current_layer_data.split("END")[0]
+
+                            # Remove any trailing commas
+                            current_layer_data = current_layer_data.rstrip(",")
+
+                            try:
+                                # Convert values to float and store in model params
+                                values = []
+                                for val in current_layer_data.split(","):
+                                    val = val.strip()
+                                    if val:  # Skip empty entries
+                                        try:
+                                            values.append(float(val))
+                                        except ValueError as e:
+                                            logging.error(f"Error parsing value in {current_layer}: {val}")
+                                            # If we can detect the corrupted part, we can try to salvage what we have
+                                            if "\\x00" in val or "\\x" in val:
+                                                logging.warn(f"Detected binary data in value, truncating: {val[:10]}...")
+                                                break
+                                            raise
+
+                                if values:
+                                    current_client["model_params"][current_layer] = values
+                                    logging.info(f"Successfully parsed {len(values)} values for {current_layer}")
+                            except Exception as e:
+                                logging.error(f"Failed to parse {current_layer} data: {e}")
+
+                            # Reset for next layer
+                            current_layer = None
+                            current_layer_data = ""
+
+                            # If this was the end marker, process the client data
+                            if "END" in data:
+                                if all(len(v) > 0 for v in current_client["model_params"].values()):
+                                    self.model_updates.append(current_client)
+                                    logging.info(f"Received complete update from client {current_client['client_id']}")
+                                    current_client = {
+                                        "client_id": None,
+                                        "model_params": {
+                                            "conv1.weight": [],
+                                            "conv1.bias": [],
+                                            "conv2.weight": [],
+                                            "conv2.bias": [],
+                                            "dense1.weight": [],
+                                            "dense1.bias": [],
+                                            "dense2.weight": [],
+                                            "dense2.bias": [],
+                                        },
+                                    }
+                                buffer = ""
+                    else:
+                        # Other data not part of a layer
+                        buffer += data + "\n"
+
+                        # Check if we've reached the end marker
+                        if "END" in buffer:
+                            # If we have an end marker without processing layers properly,
+                            # it's likely a format issue
+                            logging.info("Received END marker, finalizing client update")
+                            buffer = ""
+
+                    # Check if we have all clients
+                    if len(self.model_updates) >= self.num_clients:
+                        break
+
+                except ValueError as e:
+                    logging.error(f"Error parsing value: {e}")
+                    # Don't lose the current layer progress
+                    if current_layer:
+                        logging.error(f"Error occurred while parsing {current_layer}")
+                        current_layer = None
+                        current_layer_data = ""
+                except Exception as e:
+                    logging.error(f"Error processing data: {e}")
+                    logging.error(f"Raw data: {raw_data}")
 
         except Exception as e:
-            logging.error(f"Error receiving data: {e}")
-            logging.error(f"Raw data: {data}")
+            logging.error(f"Error in receive_client_updates: {e}")
+            raise
 
     def save_model(self, model_params, path="global_model.pth"):
         """Saves the global model parameters."""
