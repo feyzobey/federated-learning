@@ -47,7 +47,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 uint8_t rx_buffer[256];
 uint8_t tx_buffer[2048]; // Increased buffer size for complete JSON
-char json_buffer[8096];  // Increased buffer size for complete JSON
+char json_buffer[51200]; // Increased buffer size for complete JSON
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,11 +94,12 @@ void send_dummy_model_data(int client_id)
 void send_all_client_updates(void)
 {
     // Send 36 different client updates
-    for (int i = 1; i <= 36; i++)
-    {
-        send_dummy_model_data(i);
-        // LED will toggle for each transmission
-    }
+    //    for (int i = 1; i <= 36; i++)
+    //    {
+    //        send_dummy_model_data(i);
+    //        // LED will toggle for each transmission
+    //    }
+    send_dummy_model_data(1);
 
     // Keep LED on to indicate completion
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
