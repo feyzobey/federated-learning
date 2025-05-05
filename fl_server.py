@@ -6,11 +6,7 @@ import serial.tools.list_ports
 import re
 
 # Set up logging to text file
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler("server_log.txt")],
-)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(), logging.FileHandler("server_log.txt")])
 
 
 def list_available_ports():
@@ -50,10 +46,14 @@ class FederatedServer:
         for key, value in first_update.items():
             avg_params[key] = torch.zeros_like(torch.tensor(value))
 
-        # Accumulate updates
+        # First accumulate all updates (sum)
         for client_update in self.model_updates:
             for key, value in client_update["model_params"].items():
-                avg_params[key] += torch.tensor(value) / self.num_clients
+                avg_params[key] += torch.tensor(value)
+        
+        # Then divide by number of clients (average)
+        for key in avg_params:
+            avg_params[key] /= self.num_clients
 
         logging.info(f"Updated Global Model at {datetime.now()}")
 
