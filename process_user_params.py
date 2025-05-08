@@ -32,8 +32,8 @@ def get_original_shape(values, layer_name):
         # For conv layers, reshape to (out_channels, in_channels, kernel_size)
         if len(values) == 288:  # First conv layer
             return (32, 3, 3)
-        elif len(values) == 2048:  # Second conv layer
-            return (64, 32, 1)
+        elif len(values) == 6144:  # Second conv layer
+            return (64, 32, 3)
     elif "dense" in layer_name.lower() and "bias" not in layer_name.lower():
         # For dense layers, use appropriate shapes
         if len(values) == 3200:
