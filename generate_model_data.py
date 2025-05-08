@@ -6,68 +6,69 @@ from datetime import datetime
 def generate_model_data():
     # Create a dictionary to store all the model parameters
     model_data = {}
+    model_shapes = {}
 
-    # Generate conv1 weights (32x3x3)
-    model_data["conv1.weight"] = np.random.uniform(-1, 1, (32, 3, 3)).flatten().tolist()
+    # Generate conv1d weights (32x3x3)
+    model_data["conv1d.weight"] = np.random.uniform(-1, 1, (32, 3, 3))
+    model_shapes["conv1d.weight"] = (32, 3, 3)
 
-    # Generate conv1 bias (32)
-    model_data["conv1.bias"] = np.random.uniform(-1, 1, 32).tolist()
+    # Generate conv1d bias (32)
+    model_data["conv1d.bias"] = np.random.uniform(-1, 1, (32,))
+    model_shapes["conv1d.bias"] = (32,)
 
-    # Generate conv2 weights (64x3x3)
-    model_data["conv2.weight"] = np.random.uniform(-1, 1, (64, 3, 3)).flatten().tolist()
+    # Generate conv1d_1 weights (64x32x3)
+    model_data["conv1d_1.weight"] = np.random.uniform(-1, 1, (64, 32, 3))
+    model_shapes["conv1d_1.weight"] = (64, 32, 3)
 
-    # Generate conv2 bias (64)
-    model_data["conv2.bias"] = np.random.uniform(-1, 1, 64).tolist()
+    # Generate conv1d_1 bias (64)
+    model_data["conv1d_1.bias"] = np.random.uniform(-1, 1, (64,))
+    model_shapes["conv1d_1.bias"] = (64,)
 
-    # Generate dense1 weights (50x64)
-    model_data["dense1.weight"] = np.random.uniform(-1, 1, (50, 64)).flatten().tolist()
+    # Generate dense weights (50x64)
+    model_data["dense.weight"] = np.random.uniform(-1, 1, (50, 64))
+    model_shapes["dense.weight"] = (50, 64)
 
-    # Generate dense1 bias (50)
-    model_data["dense1.bias"] = np.random.uniform(-1, 1, 50).tolist()
+    # Generate dense bias (50)
+    model_data["dense.bias"] = np.random.uniform(-1, 1, (50,))
+    model_shapes["dense.bias"] = (50,)
 
-    # Generate dense2 weights (6x50)
-    model_data["dense2.weight"] = np.random.uniform(-1, 1, (6, 50)).flatten().tolist()
+    # Generate dense_1 weights (6x50)
+    model_data["dense_1.weight"] = np.random.uniform(-1, 1, (6, 50))
+    model_shapes["dense_1.weight"] = (6, 50)
 
-    # Generate dense2 bias (6)
-    model_data["dense2.bias"] = np.random.uniform(-1, 1, 6).tolist()
+    # Generate dense_1 bias (6)
+    model_data["dense_1.bias"] = np.random.uniform(-1, 1, (6,))
+    model_shapes["dense_1.bias"] = (6,)
 
-    return model_data
+    return model_data, model_shapes
 
 
-def save_model_data(model_data, client_id):
-    # Get the Downloads folder path
-    # downloads_path = os.path.expanduser("~/Downloads")
+def save_model_data(model_data, model_shapes):
+    # write text file with format like parameters/user_1_iter_1_params.txt
 
-    # Create filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"model_data_client_{client_id}_{timestamp}.txt"
-    filepath = os.path.join(filename)
+    filename = f"dense_model_data.txt"
+    # make flatten the model data
+    flattened_model_data = {}
+    for layer_name, values in model_data.items():
+        flattened_model_data[layer_name] = values.flatten()
 
-    # Write the data to file
-    with open(filepath, "w") as f:
-        f.write(f"CLIENT:{client_id}\n")
-        for layer_name, values in model_data.items():
-            # Convert all values to strings with 6 decimal places
-            values_str = ",".join([f"{v:.6f}" for v in values])
-            f.write(f"{layer_name}:{values_str}\n")
-        f.write("END\n")
+    with open(filename, "w") as f:
+        for layer_name, values in flattened_model_data.items():
+            f.write(f"{layer_name}\n")
 
-    print(f"Model data saved to: {filepath}")
-    return filepath
+    # write the flattened model data to the file
+    with open(filename, "w") as f:
+        for layer_name, values in flattened_model_data.items():
+            f.write(f"{layer_name}\n")
+            f.write(f"{model_shapes[layer_name]}\n")
+            for value in values:
+                f.write(f"{value:.6f} ")
+            f.write("\n")
 
 
 if __name__ == "__main__":
-    # Generate data for client 1
-    model_data = generate_model_data()
-    save_model_data(model_data, 1)
+    # Generate data
+    model_data, model_shapes = generate_model_data()
 
-    # Print shape information
-    # print("\nGenerated tensor shapes:")
-    # print("conv1.weight:", (32, 3, 3))
-    # print("conv1.bias:", (32,))
-    # print("conv2.weight:", (64, 3, 3))
-    # print("conv2.bias:", (64,))
-    # print("dense1.weight:", (50, 64))
-    # print("dense1.bias:", (50,))
-    # print("dense2.weight:", (6, 50))
-    # print("dense2.bias:", (6,))
+    # Save to parameters directory with the expected filename
+    save_model_data(model_data, model_shapes)
