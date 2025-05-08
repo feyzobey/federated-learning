@@ -1,6 +1,5 @@
 import ast
 import glob
-import json
 import logging
 import re
 from datetime import datetime
@@ -9,20 +8,60 @@ import numpy as np
 import torch
 
 
+def verify_shapes_match(model_updates, layer_name):
+    """Verify that all clients have the same shape for a given layer"""
+    shapes = []
+    for update in model_updates:
+        if layer_name in update["model_params"]:
+            tensor = np.array(update["model_params"][layer_name])
+            shapes.append(tensor.shape)
+
+    if not shapes:
+        return None
+
+    if not all(s == shapes[0] for s in shapes):
+        logging.error(f"Shape mismatch in {layer_name}: {shapes}")
+        raise ValueError(f"Shape mismatch in {layer_name}")
+
+    return shapes[0]
+
+
+def get_original_shape(values, layer_name):
+    """Convert flattened array back to original shape based on layer name"""
+    if "conv" in layer_name.lower():
+        # For conv layers, reshape to (out_channels, in_channels, kernel_size)
+        if len(values) == 288:  # First conv layer
+            return (32, 3, 3)
+        elif len(values) == 2048:  # Second conv layer
+            return (64, 32, 1)
+    elif "dense" in layer_name.lower() and "bias" not in layer_name.lower():
+        # For dense layers, use appropriate shapes
+        if len(values) == 3200:
+            return (50, 64)
+        elif len(values) == 300:
+            return (6, 50)
+    elif "bias" in layer_name.lower():
+        # For bias terms, keep as 1D
+        return (len(values),)
+
+    # If no specific shape is found, keep original flattened shape
+    return (len(values),)
+
+
 def process_federated_learning(iteration=1):
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Starting federated learning process for iteration {iteration}")
 
-    param_files = glob.glob(f"parameters/user_*_iter_{iteration}_params.txt")
-    logging.info(f"Found {len(param_files)} parameter files for iteration {iteration}")
+    param_files = glob.glob(f"parameters/user_*.txt")
+    logging.info(f"Found {len(param_files)} parameter files")
 
     if len(param_files) == 0:
-        raise FileNotFoundError(f"No parameter files found for iteration {iteration}")
+        raise FileNotFoundError(f"No parameter files found in parameters directory")
 
     model_updates = []
 
     for file_path in param_files:
-        user_id_match = re.search(r"user_(\d+)_iter", file_path)
+        user_id_match = re.search(r"user_(\d+)", file_path)
         if not user_id_match:
             logging.warning(f"Could not extract user ID from filename: {file_path}")
             continue
@@ -91,6 +130,11 @@ def process_federated_learning(iteration=1):
 
     logging.info(f"Loaded model parameters from {len(model_updates)} users.")
 
+    # Verify shapes match across all clients
+    first_update = model_updates[0]["model_params"]
+    for layer_name in first_update.keys():
+        verify_shapes_match(model_updates, layer_name)
+
     # --- Federated Averaging ---
     class OfflineFedServer:
         def __init__(self, model_updates):
@@ -100,15 +144,28 @@ def process_federated_learning(iteration=1):
         def federated_averaging(self):
             avg_params = {}
             first = self.model_updates[0]["model_params"]
-            for layer, values in first.items():
-                avg_params[layer] = torch.zeros_like(torch.tensor(values))
 
+            # Initialize with zeros
+            for layer, values in first.items():
+                avg_params[layer] = torch.zeros_like(torch.tensor(values, dtype=torch.float32))
+
+            # Sum all parameters
             for update in self.model_updates:
                 for layer, values in update["model_params"].items():
-                    avg_params[layer] += torch.tensor(values)
+                    avg_params[layer] += torch.tensor(values, dtype=torch.float32)
 
+            # Average by dividing by number of clients
             for layer in avg_params:
                 avg_params[layer] /= self.num_clients
+
+                # Verify averaging is working correctly
+                mean_before = torch.tensor([update["model_params"][layer] for update in self.model_updates]).mean(dim=0)
+                mean_after = avg_params[layer]
+                if not torch.allclose(mean_before, mean_after, rtol=1e-4):
+                    logging.error(f"Averaging verification failed for {layer}")
+                    raise ValueError(f"Federated averaging verification failed for {layer}")
+                else:
+                    logging.info(f"Verified averaging for {layer}")
 
             return avg_params
 
@@ -116,18 +173,26 @@ def process_federated_learning(iteration=1):
     avg_params = server.federated_averaging()
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file = f"federated_learning_results_iter{iteration}_{timestamp}.json"
+    out_file = f"federated_learning_results_iter{iteration}_{timestamp}.txt"
 
-    result = {
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "iteration": iteration,
-        "num_clients": len(model_updates),
-        "global_model": {k: v.tolist() for k, v in avg_params.items()},
-        "participating_clients": [u["client_id"] for u in model_updates],
-    }
-
+    # Save results in the same format as input files
     with open(out_file, "w") as f:
-        json.dump(result, f, indent=2)
+        for layer_name, values in avg_params.items():
+            # Write layer name
+            f.write(f"{layer_name}\n")
+
+            # Get the original shape
+            values_np = values.detach().numpy()
+            original_shape = get_original_shape(values_np, layer_name)
+
+            # Write shape in the correct format
+            f.write(f"{original_shape}\n")
+
+            # Reshape values to original shape and write
+            values_reshaped = values_np.reshape(original_shape)
+            values_flat = values_reshaped.flatten()
+            formatted_values = " ".join([f"{val:.6f}" for val in values_flat])
+            f.write(f"{formatted_values}\n")
 
     logging.info(f"Saved federated learning result to: {out_file}")
     return out_file
